@@ -36,10 +36,10 @@ Layer layer4 = {
 
 Layer layer3 = {		/**< Layer with P2 */
   (AbShape *)&player2,
-  {(30), (screenHeight/2)}, /**< bit below & right of center */
+  {15, (screenHeight/2)}, /**< bit below & right of center */
   {0,0}, {0,0},				    /* last & next pos */
-  COLOR_RED,
-  
+  COLOR_RED,  
+  &layer4,
 };
 
 
@@ -52,20 +52,12 @@ Layer fieldLayer = {		/* playing field as a layer */
 };
 
 
-
-Layer layer5 = {
-	(AbShape *)&player2,
-	{0,screenHeight/2},
-	{0,0},{0,0},
-	COLOR_RED,
-};
-
 Layer layer1 = {		/**< Layer with a red square */
   (AbShape *)&rect10,
-  {screenWidth-30, screenHeight/2}, /**< center */
+  {screenWidth-15, screenHeight/2}, /**< center */
   {0,0}, {0,0},				    /* last & next pos */
   COLOR_RED,
-&fieldLayer,  
+  &fieldLayer,  
 };
 
 Layer layer0 = {		/**< Layer with an orange circle */
@@ -87,9 +79,11 @@ typedef struct MovLayer_s {
 } MovLayer;
 
 /* initial value of {0,0} will be overwritten */
-MovLayer ml3 = { &layer3, {1,1}, 0 }; /**< not all layers move */
-MovLayer ml1 = { &layer1, {1,2}, &ml3 }; 
+MovLayer ml3 = { &layer3, {0,1}, 0 }; /**< not all layers move */
+MovLayer ml1 = { &layer1, {0,1}, &ml3}; 
 MovLayer ml0 = { &layer0, {2,1}, &ml1 }; 
+//MovLayer ml4= { &layer5, {0,0},0};
+
 
 void movLayerDraw(MovLayer *movLayers, Layer *layers)
 {
