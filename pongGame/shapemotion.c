@@ -1,10 +1,7 @@
 /** \file Pong.c
- *  \brief This is a simple shape motion demo.
- *  This demo creates two layers containing shapes.
- *  One layer contains a rectangle and the other a circle.
- *  While the CPU is running the green LED is on, and
- *  when the screen does not need to be redrawn the CPU
- *  is turned off along with the green LED.
+ *  This is a simple pong game to be played on the MSP430.
+ *  This file creates two paddles and a ball.
+ *  Code is explained more in depth for each line. 
  */  
 #include <msp430.h>
 #include <libTimer.h>
@@ -17,11 +14,11 @@
 
 #define GREEN_LED BIT6
 
-AbRect player2 ={abRectGetBounds,abRectCheck,{5,20}};
-AbRect rect10 = {abRectGetBounds, abRectCheck, {5,20}}; /**< 10x10 rectangle */
+AbRect player2 ={abRectGetBounds,abRectCheck,{5,20}}; // * Player 2 Paddle */
+AbRect rect10 = {abRectGetBounds, abRectCheck, {5,20}}; /* Player 1 Paddle */
 AbRArrow rightArrow = {abRArrowGetBounds, abRArrowCheck, 0};
-unsigned char currentScorePlayer1[] = "0";
-unsigned char currentScorePlayer2[] = "0";
+unsigned char currentScorePlayer1[] = "0"; //Score for player 1
+unsigned char currentScorePlayer2[] = "0"; //Score for player 2
 
 AbRectOutline fieldOutline = {	/* playing field */
   abRectOutlineGetBounds, abRectOutlineCheck,   
@@ -37,7 +34,7 @@ Layer layer4 = {
 };
   
 
-Layer layer3 = {		/**< Layer with P2 */
+Layer layer3 = {		/**< Layer with Player 2 */
   (AbShape *)&player2,
   {15, (screenHeight/2)}, /**< bit below & right of center */
   {0,0}, {0,0},				    /* last & next pos */
@@ -55,7 +52,7 @@ Layer fieldLayer = {		/* playing field as a layer */
 };
 
 
-Layer layer1 = {		/**< Layer with a red square */
+Layer layer1 = {		/**< Layer with player 1*/
   (AbShape *)&rect10,
   {screenWidth-15, screenHeight/2}, /**< center */
   {0,0}, {0,0},				    /* last & next pos */
@@ -63,7 +60,7 @@ Layer layer1 = {		/**< Layer with a red square */
   &fieldLayer,  
 };
 
-Layer layer0 = {		/**< Layer with an orange circle */
+Layer layer0 = {		/**< The little bouncy ball  */
   (AbShape *)&circle7,
   {(screenWidth/2)+10, (screenHeight/2)+5}, /**< bit below & right of center */
   {0,0}, {0,0},				    /* last & next pos */
@@ -128,31 +125,31 @@ void movLayerDraw(MovLayer *movLayers, Layer *layers)
 }	  
 
 
-void movePaddle(MovLayer *myPlayer,  int myDirection){
+void movePaddle(MovLayer *myPlayer,  int myDirection){ //Modes the paddle depending on the button pressed.
   myPlayer-> velocity.axes[1] = 3*(myDirection);
 }
 
-void bouncyBall(Region *fence,MovLayer *ball){
+void bouncyBall(Region *fence,MovLayer *ball){ //Checks for collision between the ball and paddle.
  int collides = abShapeCheck(ball->layer->abShape, &ball->layer->pos, &ml1.layer->pos);
  int collides2= abShapeCheck(ball->layer->abShape,&ball->layer->pos,&ml3.layer->pos);
- if(collides){
+ if(collides){ //If the first paddle collides with the ball, throw the ball in the opposite direction.
    int velocityX = ball->velocity.axes[0] = -ball->velocity.axes[0];
    int velocityY = ball->velocity.axes[1] = -ball->velocity.axes[1];
    ball-> velocity.axes[1] = 3*(1);
    ball-> layer -> pos.axes[0] +=  (2*velocityX);
    ball -> layer -> pos.axes[1] += (2*velocityY);
-   buzzer_set_period(9000,100);
+   buzzer_set_period(9000,100); //Make a sound if the ball is hit
    delayPlease(50);
    buzzer_set_period(2,1);
  }
- if(collides2){
+ if(collides2){ //If the second paddle collides with the ball throw the ball in the opposite direction.
    int velocityX = ball->velocity.axes[0] = -ball->velocity.axes[0];
    int velocityY = ball->velocity.axes[1] = -ball->velocity.axes[1];
    ball->velocity.axes[1] = 3*(-1);
    ball-> layer -> pos.axes[0] +=  (2*velocityX);
    ball -> layer -> pos.axes[1] += (2*velocityY);
    buzzer_set_period(2000,3);
-   delayPlease(50);
+   delayPlease(50); //Makes a sound if the ball is hit
    buzzer_set_period(2,1);
  }
  
@@ -182,7 +179,7 @@ void mlAdvance(MovLayer *ml, Region *fence)
         delayPlease(50);
         buzzer_set_period(2,1);
         if(shapeBoundary.topLeft.axes[0] < fence-> topLeft.axes[0])
-          currentScorePlayer2[0]++;
+          currentScorePlayer2[0]++; //Adds to score if the ball hits the wall
       }
 	if (shapeBoundary.botRight.axes[axis] > fence->botRight.axes[axis]){
 	int velocity = ml->velocity.axes[axis] = -ml->velocity.axes[axis];
@@ -191,7 +188,7 @@ void mlAdvance(MovLayer *ml, Region *fence)
         delayPlease(50);
         buzzer_set_period(2,1);
         if(shapeBoundary.botRight.axes[0] > fence->botRight.axes[0])
-           currentScorePlayer1[0]++;
+	  currentScorePlayer1[0]++; //Adds to score if the ball hit the wall.
       }	/**< if outside of fence */
     } /**< for axis */
     ml->layer->posNext = newPos;
@@ -251,21 +248,21 @@ void wdt_c_handler()
   bouncyBall(&fieldFence,&ml0);
   unsigned int mySwitch = p2sw_read();
   if (count == 15) {
-    redrawScreen=1;
+    redrawScreen=1; //Redraws the screen with the most updated scores.
     drawString5x7(10,screenHeight-9,"Score: P1-", COLOR_YELLOW, COLOR_BLUE);
     drawString5x7(70,screenHeight-9,currentScorePlayer1,COLOR_RED,COLOR_BLUE);
     drawString5x7(80,screenHeight-9,"P2-", COLOR_YELLOW,COLOR_BLUE);
     drawString5x7(110,screenHeight-9,currentScorePlayer2,COLOR_RED,COLOR_BLUE);
     mlAdvance(&ml0, &fieldFence);
-    if (~mySwitch & 1)
+    if (~mySwitch & 1) //SW 1
       movePaddle(&ml3,1);
-    else if( ~mySwitch & 2)
+    else if( ~mySwitch & 2) // SW2
       movePaddle(&ml3,-1);
-    else if(~mySwitch & 7)
+    else if(~mySwitch & 7) // SW 3
       movePaddle(&ml1,1);
-    else if(~mySwitch & 8)
+    else if(~mySwitch & 8) //SW 4
       movePaddle(&ml1,-1);
-    else{
+    else{ //If none is pressed, dont move the paddle.
 	movePaddle(&ml3,0);
         movePaddle(&ml1,0);
 }
