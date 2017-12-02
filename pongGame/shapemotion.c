@@ -14,6 +14,7 @@
 #include <shape.h>
 #include <abCircle.h>
 
+
 #define GREEN_LED BIT6
 
 AbRect player2 ={abRectGetBounds,abRectCheck,{5,20}};
@@ -72,6 +73,8 @@ Layer layer0 = {		/**< Layer with an orange circle */
  *  Linked list of layer references
  *  Velocity represents one iteration of change (direction & magnitude)
  */
+
+
 typedef struct MovLayer_s {
   Layer *layer;
   Vec2 velocity;
@@ -79,9 +82,9 @@ typedef struct MovLayer_s {
 } MovLayer;
 
 /* initial value of {0,0} will be overwritten */
-MovLayer ml3 = { &layer3, {0,1}, 0 }; /**< not all layers move */
-MovLayer ml1 = { &layer1, {0,1}, &ml3}; 
-MovLayer ml0 = { &layer0, {2,1}, &ml1 }; 
+MovLayer ml3 = { &layer3, {0,0}, 0 }; /**< not all layers move */
+MovLayer ml1 = { &layer1, {0,0}, &ml3}; 
+MovLayer ml0 = { &layer0, {1,1}, &ml1 }; 
 //MovLayer ml4= { &layer5, {0,0},0};
 
 
@@ -122,6 +125,12 @@ void movLayerDraw(MovLayer *movLayers, Layer *layers)
   } // for moving layer being updated
 }	  
 
+
+void movePaddle(MovLayer *myPlayer,  int myDirection){
+
+myPlayer-> velocity.axes[1] = 3*(myDirection);
+
+}
 
 
 //Region fence = {{10,30}, {SHORT_EDGE_PIXELS-10, LONG_EDGE_PIXELS-10}}; /**< Create a fence region */
@@ -168,7 +177,7 @@ void main()
   configureClocks();
   lcd_init();
   shapeInit();
-  p2sw_init(1);
+  p2sw_init(15);
 
   shapeInit();
 
@@ -193,17 +202,29 @@ void main()
     movLayerDraw(&ml0, &layer0);
   }
 }
-
+#include "switches.h"
 /** Watchdog timer interrupt handler. 15 interrupts/sec */
 void wdt_c_handler()
 {
   static short count = 0;
   P1OUT |= GREEN_LED;		      /**< Green LED on when cpu on */
   count ++;
+  unsigned int mySwitch = p2sw_read();
   if (count == 15) {
+    redrawScreen=1;
     mlAdvance(&ml0, &fieldFence);
-    if (p2sw_read())
-      redrawScreen = 1;
+    if (~mySwitch & 1)
+      movePaddle(&ml3,1);
+    else if( ~mySwitch & 2)
+      movePaddle(&ml3,-1);
+    else if(~mySwitch & 7)
+      movePaddle(&ml1,1);
+    else if(~mySwitch & 8)
+      movePaddle(&ml1,-1);
+    else{
+	movePaddle(&ml3,0);
+        movePaddle(&ml1,0);
+}
     count = 0;
   } 
   P1OUT &= ~GREEN_LED;		    /**< Green LED off when cpu off */
