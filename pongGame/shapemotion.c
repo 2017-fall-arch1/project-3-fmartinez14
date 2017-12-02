@@ -13,14 +13,15 @@
 #include <p2switches.h>
 #include <shape.h>
 #include <abCircle.h>
-
+#include "buzzer.h"
 
 #define GREEN_LED BIT6
 
 AbRect player2 ={abRectGetBounds,abRectCheck,{5,20}};
 AbRect rect10 = {abRectGetBounds, abRectCheck, {5,20}}; /**< 10x10 rectangle */
 AbRArrow rightArrow = {abRArrowGetBounds, abRArrowCheck, 0};
-
+char* currentScorePlayer1 = "0";
+char* currentScorePlayer2= "0";
 AbRectOutline fieldOutline = {	/* playing field */
   abRectOutlineGetBounds, abRectOutlineCheck,   
   {screenWidth/2 - 10, screenHeight/2 - 10}
@@ -141,6 +142,9 @@ int velocityY = ball->velocity.axes[1] = -ball->velocity.axes[1];
 ball-> velocity.axes[1] = 3*(1);
 ball-> layer -> pos.axes[0] +=  (2*velocityX);
 ball -> layer -> pos.axes[1] += (2*velocityY);
+buzzer_set_period(2000,3);
+delayPlease(50);
+buzzer_set_period(2,1);
 }
 if(collides2){
 int velocityX = ball->velocity.axes[0] = -ball->velocity.axes[0];
@@ -148,7 +152,11 @@ int velocityY = ball->velocity.axes[1] = -ball->velocity.axes[1];
 ball->velocity.axes[1] = 3*(-1);
 ball-> layer -> pos.axes[0] +=  (2*velocityX);
 ball -> layer -> pos.axes[1] += (2*velocityY);
+buzzer_set_period(2000,3);
+delayPlease(50);
+buzzer_set_period(2,1);
 }
+
 }
 
 
@@ -172,6 +180,10 @@ void mlAdvance(MovLayer *ml, Region *fence)
 	  (shapeBoundary.botRight.axes[axis] > fence->botRight.axes[axis]) ) {
 	int velocity = ml->velocity.axes[axis] = -ml->velocity.axes[axis];
 	newPos.axes[axis] += (2*velocity);
+        buzzer_set_period(6000,9);
+        delayPlease(50);
+        buzzer_set_period(2,1);
+        currentScorePlayer1 ++;
       }	/**< if outside of fence */
     } /**< for axis */
     ml->layer->posNext = newPos;
@@ -197,7 +209,7 @@ void main()
   lcd_init();
   shapeInit();
   p2sw_init(15);
-
+  buzzer_init();
   shapeInit();
 
   layerInit(&layer0);
@@ -228,10 +240,15 @@ void wdt_c_handler()
   static short count = 0;
   P1OUT |= GREEN_LED;		      /**< Green LED on when cpu on */
   count ++;
+  bouncyBall(&fieldFence,&ml0);
   unsigned int mySwitch = p2sw_read();
   if (count == 15) {
     redrawScreen=1;
-    bouncyBall(&fieldFence,&ml0);
+    *currentScorePlayer1 += *currentScorePlayer1;
+    drawString5x7(10,screenHeight-9,"Score: P1-", COLOR_YELLOW, COLOR_BLUE);
+    drawString5x7(70,screenHeight-9,currentScorePlayer1,COLOR_RED,COLOR_BLUE);
+    drawString5x7(80,screenHeight-9,"P2-", COLOR_YELLOW,COLOR_BLUE);
+    drawString5x7(110,screenHeight-9,currentScorePlayer2,COLOR_RED,COLOR_BLUE);
     mlAdvance(&ml0, &fieldFence);
     if (~mySwitch & 1)
       movePaddle(&ml3,1);
