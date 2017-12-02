@@ -1,4 +1,4 @@
-/** \file shapemotion.c
+/** \file Pong.c
  *  \brief This is a simple shape motion demo.
  *  This demo creates two layers containing shapes.
  *  One layer contains a rectangle and the other a circle.
@@ -20,9 +20,9 @@
 AbRect player2 ={abRectGetBounds,abRectCheck,{5,20}};
 AbRect rect10 = {abRectGetBounds, abRectCheck, {5,20}}; /**< 10x10 rectangle */
 AbRArrow rightArrow = {abRArrowGetBounds, abRArrowCheck, 0};
-char currentScorePlayer1[] = "0";
-char* currentScorePlayer2= "0";
-int score1= 0;
+unsigned char currentScorePlayer1[] = "0";
+unsigned char currentScorePlayer2[] = "0";
+
 AbRectOutline fieldOutline = {	/* playing field */
   abRectOutlineGetBounds, abRectOutlineCheck,   
   {screenWidth/2 - 10, screenHeight/2 - 10}
@@ -144,7 +144,6 @@ void bouncyBall(Region *fence,MovLayer *ball){
    buzzer_set_period(9000,100);
    delayPlease(50);
    buzzer_set_period(2,1);
-   currentScorePlayer1[0]++;
  }
  if(collides2){
    int velocityX = ball->velocity.axes[0] = -ball->velocity.axes[0];
@@ -176,13 +175,23 @@ void mlAdvance(MovLayer *ml, Region *fence)
     vec2Add(&newPos, &ml->layer->posNext, &ml->velocity);
     abShapeGetBounds(ml->layer->abShape, &newPos, &shapeBoundary);
     for (axis = 0; axis < 2; axis ++) {
-      if ((shapeBoundary.topLeft.axes[axis] < fence->topLeft.axes[axis]) ||
-	  (shapeBoundary.botRight.axes[axis] > fence->botRight.axes[axis]) ) {
+      if (shapeBoundary.topLeft.axes[axis] < fence->topLeft.axes[axis]){
 	int velocity = ml->velocity.axes[axis] = -ml->velocity.axes[axis];
 	newPos.axes[axis] += (2*velocity);
         buzzer_set_period(6000,9);
         delayPlease(50);
         buzzer_set_period(2,1);
+        if(shapeBoundary.topLeft.axes[0] < fence-> topLeft.axes[0])
+          currentScorePlayer2[0]++;
+      }
+	if (shapeBoundary.botRight.axes[axis] > fence->botRight.axes[axis]){
+	int velocity = ml->velocity.axes[axis] = -ml->velocity.axes[axis];
+	newPos.axes[axis] += (2*velocity);
+        buzzer_set_period(6000,9);
+        delayPlease(50);
+        buzzer_set_period(2,1);
+        if(shapeBoundary.botRight.axes[0] > fence->botRight.axes[0])
+           currentScorePlayer1[0]++;
       }	/**< if outside of fence */
     } /**< for axis */
     ml->layer->posNext = newPos;
@@ -232,7 +241,7 @@ void main()
     movLayerDraw(&ml0, &layer0);
   }
 }
-#include "switches.h"
+
 /** Watchdog timer interrupt handler. 15 interrupts/sec */
 void wdt_c_handler()
 {
