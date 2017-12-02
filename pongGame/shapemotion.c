@@ -20,8 +20,9 @@
 AbRect player2 ={abRectGetBounds,abRectCheck,{5,20}};
 AbRect rect10 = {abRectGetBounds, abRectCheck, {5,20}}; /**< 10x10 rectangle */
 AbRArrow rightArrow = {abRArrowGetBounds, abRArrowCheck, 0};
-char* currentScorePlayer1 = "0";
+char currentScorePlayer1[] = "0";
 char* currentScorePlayer2= "0";
+int score1= 0;
 AbRectOutline fieldOutline = {	/* playing field */
   abRectOutlineGetBounds, abRectOutlineCheck,   
   {screenWidth/2 - 10, screenHeight/2 - 10}
@@ -128,35 +129,34 @@ void movLayerDraw(MovLayer *movLayers, Layer *layers)
 
 
 void movePaddle(MovLayer *myPlayer,  int myDirection){
-
-myPlayer-> velocity.axes[1] = 3*(myDirection);
-
+  myPlayer-> velocity.axes[1] = 3*(myDirection);
 }
 
 void bouncyBall(Region *fence,MovLayer *ball){
-int collides = abShapeCheck(ball->layer->abShape, &ball->layer->pos, &ml1.layer->pos);
-int collides2= abShapeCheck(ball->layer->abShape,&ball->layer->pos,&ml3.layer->pos);
-if(collides){
-int velocityX = ball->velocity.axes[0] = -ball->velocity.axes[0];
-int velocityY = ball->velocity.axes[1] = -ball->velocity.axes[1];
-ball-> velocity.axes[1] = 3*(1);
-ball-> layer -> pos.axes[0] +=  (2*velocityX);
-ball -> layer -> pos.axes[1] += (2*velocityY);
-buzzer_set_period(2000,3);
-delayPlease(50);
-buzzer_set_period(2,1);
-}
-if(collides2){
-int velocityX = ball->velocity.axes[0] = -ball->velocity.axes[0];
-int velocityY = ball->velocity.axes[1] = -ball->velocity.axes[1];
-ball->velocity.axes[1] = 3*(-1);
-ball-> layer -> pos.axes[0] +=  (2*velocityX);
-ball -> layer -> pos.axes[1] += (2*velocityY);
-buzzer_set_period(2000,3);
-delayPlease(50);
-buzzer_set_period(2,1);
-}
-
+ int collides = abShapeCheck(ball->layer->abShape, &ball->layer->pos, &ml1.layer->pos);
+ int collides2= abShapeCheck(ball->layer->abShape,&ball->layer->pos,&ml3.layer->pos);
+ if(collides){
+   int velocityX = ball->velocity.axes[0] = -ball->velocity.axes[0];
+   int velocityY = ball->velocity.axes[1] = -ball->velocity.axes[1];
+   ball-> velocity.axes[1] = 3*(1);
+   ball-> layer -> pos.axes[0] +=  (2*velocityX);
+   ball -> layer -> pos.axes[1] += (2*velocityY);
+   buzzer_set_period(9000,100);
+   delayPlease(50);
+   buzzer_set_period(2,1);
+   currentScorePlayer1[0]++;
+ }
+ if(collides2){
+   int velocityX = ball->velocity.axes[0] = -ball->velocity.axes[0];
+   int velocityY = ball->velocity.axes[1] = -ball->velocity.axes[1];
+   ball->velocity.axes[1] = 3*(-1);
+   ball-> layer -> pos.axes[0] +=  (2*velocityX);
+   ball -> layer -> pos.axes[1] += (2*velocityY);
+   buzzer_set_period(2000,3);
+   delayPlease(50);
+   buzzer_set_period(2,1);
+ }
+ 
 }
 
 
@@ -183,7 +183,6 @@ void mlAdvance(MovLayer *ml, Region *fence)
         buzzer_set_period(6000,9);
         delayPlease(50);
         buzzer_set_period(2,1);
-        currentScorePlayer1 ++;
       }	/**< if outside of fence */
     } /**< for axis */
     ml->layer->posNext = newPos;
@@ -244,7 +243,6 @@ void wdt_c_handler()
   unsigned int mySwitch = p2sw_read();
   if (count == 15) {
     redrawScreen=1;
-    *currentScorePlayer1 += *currentScorePlayer1;
     drawString5x7(10,screenHeight-9,"Score: P1-", COLOR_YELLOW, COLOR_BLUE);
     drawString5x7(70,screenHeight-9,currentScorePlayer1,COLOR_RED,COLOR_BLUE);
     drawString5x7(80,screenHeight-9,"P2-", COLOR_YELLOW,COLOR_BLUE);
