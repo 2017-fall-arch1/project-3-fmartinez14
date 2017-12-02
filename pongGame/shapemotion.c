@@ -132,6 +132,25 @@ myPlayer-> velocity.axes[1] = 3*(myDirection);
 
 }
 
+void bouncyBall(Region *fence,MovLayer *ball){
+int collides = abShapeCheck(ball->layer->abShape, &ball->layer->pos, &ml1.layer->pos);
+int collides2= abShapeCheck(ball->layer->abShape,&ball->layer->pos,&ml3.layer->pos);
+if(collides){
+int velocityX = ball->velocity.axes[0] = -ball->velocity.axes[0];
+int velocityY = ball->velocity.axes[1] = -ball->velocity.axes[1];
+ball-> velocity.axes[1] = 3*(1);
+ball-> layer -> pos.axes[0] +=  (2*velocityX);
+ball -> layer -> pos.axes[1] += (2*velocityY);
+}
+if(collides2){
+int velocityX = ball->velocity.axes[0] = -ball->velocity.axes[0];
+int velocityY = ball->velocity.axes[1] = -ball->velocity.axes[1];
+ball->velocity.axes[1] = 3*(-1);
+ball-> layer -> pos.axes[0] +=  (2*velocityX);
+ball -> layer -> pos.axes[1] += (2*velocityY);
+}
+}
+
 
 //Region fence = {{10,30}, {SHORT_EDGE_PIXELS-10, LONG_EDGE_PIXELS-10}}; /**< Create a fence region */
 
@@ -212,6 +231,7 @@ void wdt_c_handler()
   unsigned int mySwitch = p2sw_read();
   if (count == 15) {
     redrawScreen=1;
+    bouncyBall(&fieldFence,&ml0);
     mlAdvance(&ml0, &fieldFence);
     if (~mySwitch & 1)
       movePaddle(&ml3,1);
