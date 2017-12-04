@@ -5,11 +5,12 @@
 	.section	__interrupt_vector_11,"ax",@progbits
 	.word	WDT
 	.text
-	
- 	
+	.global moveUp
+        .global moveDown
+        .global dontMove 	
 	.extern redrawScreen
 	.extern wdt_c_handler
-        
+        .extern direction     
 WDT:
 ; start of function
 ; attributes: interrupt 
@@ -58,3 +59,12 @@ ball_no_move:
 	.comm	count,1,1
 	.ident	"GCC: (GNU) 4.9.1 20140707 (prerelease (msp430-14r1-364)) (GNUPro 14r1) (Based on: GCC 4.8 GDB 7.7 Binutils 2.24 Newlib 2.1)"
 
+moveUp: 
+       mov #1,&direction
+       ret
+moveDown: 
+      mov #-1,&direction
+      ret
+dontMove:
+      mov #0,&direction
+      ret

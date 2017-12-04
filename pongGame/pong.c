@@ -20,6 +20,7 @@ AbRect rect10 = {abRectGetBounds, abRectCheck, {5,15}}; /* Player 1 Paddle */
 AbRArrow rightArrow = {abRArrowGetBounds, abRArrowCheck, 0};
 unsigned char currentScorePlayer1[] = "0"; //Score for player 1
 unsigned char currentScorePlayer2[] = "0"; //Score for player 2
+int direction = "0";
 
 AbRectOutline fieldOutline = {	/* playing field */
   abRectOutlineGetBounds, abRectOutlineCheck,   
@@ -256,17 +257,26 @@ void wdt_c_handler()
     drawString5x7(80,screenHeight-9,"P2-", COLOR_YELLOW,COLOR_BLUE);
     drawString5x7(110,screenHeight-9,currentScorePlayer2,COLOR_RED,COLOR_BLUE);
     mlAdvance(&ml0, &fieldFence);
-     if (~mySwitch & 1) //SW 1
-      movePaddle(&ml3,1);
-     else if( ~mySwitch & 2) // SW2
-      movePaddle(&ml3,-1);
-     else if(~mySwitch & 7) // SW 3
-      movePaddle(&ml1,1);
-     else if(~mySwitch & 8) //SW 4
-      movePaddle(&ml1,-1);
+     if (~mySwitch & 1){ //SW 1
+      moveUp();
+      movePaddle(&ml3,direction);
+}
+     else if( ~mySwitch & 2){ // SW2
+      moveDown();
+      movePaddle(&ml3,direction);
+}
+     else if(~mySwitch & 7){ // SW 3
+      moveUp();
+      movePaddle(&ml1,direction);
+}
+     else if(~mySwitch & 8){ //SW 4
+      moveDown();
+      movePaddle(&ml1,direction);
+}
     else{ //If none is pressed, dont move the paddle.
-	movePaddle(&ml3,0);
-        movePaddle(&ml1,0);
+        dontMove();
+	movePaddle(&ml3,direction);
+        movePaddle(&ml1,direction);
 }
     count = 0;
   } 
